@@ -55,27 +55,7 @@ summary(activity)
 
 ```r
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
-steps_per_day = activity[,c(1,2)] %>% group_by(date) %>% summarise(steps = sum(steps))
+steps_per_day = activity[,c(1,2)] %>% group_by(date) %>% summarise(steps = sum(steps , na.rm = T))
 head(steps_per_day)
 ```
 
@@ -83,7 +63,7 @@ head(steps_per_day)
 ## # A tibble: 6 x 2
 ##   date       steps
 ##   <fct>      <int>
-## 1 2012-10-01    NA
+## 1 2012-10-01     0
 ## 2 2012-10-02   126
 ## 3 2012-10-03 11352
 ## 4 2012-10-04 12116
@@ -95,47 +75,47 @@ head(steps_per_day)
 library(ggplot2)
 ggplot(steps_per_day ,aes(steps))+
 geom_histogram(color="darkblue", fill="lightblue")+
-ggtitle("Histogram of the total steps taken per day")
-```
-
-```
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-```
-
-```
-## Warning: Removed 8 rows containing non-finite values (stat_bin).
-```
-
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
-
-```r
+ggtitle("Histogram of the total steps taken per day")+
 ylab("Frequency")
 ```
 
-```
-## $y
-## [1] "Frequency"
-## 
-## attr(,"class")
-## [1] "labels"
-```
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+<br>
+
+
 ## 3.Mean and median number of steps taken each day
 
 ```r
-steps_per_day_mean_median = activity[,c(1,2)] %>% group_by(date) %>% summarise(mean = mean(steps) , median = median(steps))
+steps_per_day_mean_median = activity[,c(1,2)] %>% group_by(date) %>% summarise(mean = mean(steps , na.rm = T) , median = median(steps , na.rm = T))
 head(steps_per_day_mean_median)
 ```
 
 ```
 ## # A tibble: 6 x 3
-##   date         mean median
-##   <fct>       <dbl>  <dbl>
-## 1 2012-10-01 NA         NA
-## 2 2012-10-02  0.438      0
-## 3 2012-10-03 39.4        0
-## 4 2012-10-04 42.1        0
-## 5 2012-10-05 46.2        0
-## 6 2012-10-06 53.5        0
+##   date          mean median
+##   <fct>        <dbl>  <dbl>
+## 1 2012-10-01 NaN         NA
+## 2 2012-10-02   0.438      0
+## 3 2012-10-03  39.4        0
+## 4 2012-10-04  42.1        0
+## 5 2012-10-05  46.2        0
+## 6 2012-10-06  53.5        0
+```
+
+```r
+mean(steps_per_day$steps , na.rm = T)
+```
+
+```
+## [1] 9354.23
+```
+
+```r
+median(steps_per_day$steps , na.rm = T)
+```
+
+```
+## [1] 10395
 ```
 
 ## 4.Time series plot of the average number of steps taken
@@ -168,7 +148,7 @@ max_interval
 
 ## 6.Code to describe and show a strategy for imputing missing data
 
-#### **number of missing values and percentage to whole data**
+#### **Number of missing values and percentage to whole data**
 
 ```r
 sum(is.na(activity))
@@ -179,14 +159,14 @@ sum(is.na(activity))
 ```
 
 ```r
-print(paste(round(sum(is.na(activity))/nrow(activity) * 100 ,2 ) ,"%" ,sep = ""))
+paste(round(sum(is.na(activity))/nrow(activity) * 100 ,2 ) ,"%" ,sep = "")
 ```
 
 ```
 ## [1] "13.11%"
 ```
 
-#### **Impute missing values in data**
+#### **Impute missing values in data with the average steps for each day**
 
 ```r
 new_activity = activity
@@ -199,7 +179,7 @@ new_activity$steps[is.na(activity$steps)] = activity_with_mean$mean
 
 
 ```r
-sum(is.na(new_activity))
+sum(is.na(new_activity)) #Empty !
 ```
 
 ```
@@ -229,26 +209,11 @@ head(new_steps_per_day)
 ```r
 ggplot(new_steps_per_day ,aes(steps))+
   geom_histogram(color="darkblue", fill="lightblue")+
-  ggtitle("Histogram of the total steps taken per day after removing NAs")
-```
-
-```
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+  ggtitle("Histogram of the total steps taken per day after removing NAs")+
+  ylab("Frequency")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
-
-```r
-ylab("Frequency")
-```
-
-```
-## $y
-## [1] "Frequency"
-## 
-## attr(,"class")
-## [1] "labels"
-```
 
 #### **Histogram of both the original data and the data after removing NAs to compare between both**
 
@@ -260,14 +225,6 @@ both  = rbind(new_steps_per_day, steps_per_day)
 
 ggplot(both, aes(steps, fill = type)) + 
   geom_histogram(alpha = 0.5, position = 'identity')
-```
-
-```
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-```
-
-```
-## Warning: Removed 8 rows containing non-finite values (stat_bin).
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
@@ -292,8 +249,10 @@ summary(steps_per_day$steps)[-7] #imputed
 
 ```
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-##    41.00  8841.00 10765.00 10766.19 13294.00 21194.00
+##     0.00  6778.00 10395.00  9354.23 12811.00 21194.00
 ```
+We can see that the main difference is in the fisrt quantile  
+
 
 ## 8.Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
 
@@ -314,4 +273,4 @@ ggplot(intervals_average_steps_2groups, aes(intervals_average_steps_2groups$inte
 
 ![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
-#### **9.All the code can bee see as 'Echo' is set to TRUE*
+#### **9.All the code can bee see as 'Echo' is set to TRUE**

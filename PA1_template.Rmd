@@ -8,7 +8,7 @@ output:
 **Setting global option for echo = TRUE for the code to appear**
 ```{r setoptions , echo = FALSE}
 library(knitr)
-opts_chunk$set(echo = TRUE)
+opts_chunk$set(echo = TRUE , message=FALSE )
 
 ```
 
@@ -34,19 +34,25 @@ summary(activity)
 ```{r}
 
 library(dplyr)
-steps_per_day = activity[,c(1,2)] %>% group_by(date) %>% summarise(steps = sum(steps))
+steps_per_day = activity[,c(1,2)] %>% group_by(date) %>% summarise(steps = sum(steps , na.rm = T))
 head(steps_per_day)
 
 library(ggplot2)
 ggplot(steps_per_day ,aes(steps))+
 geom_histogram(color="darkblue", fill="lightblue")+
-ggtitle("Histogram of the total steps taken per day")
+ggtitle("Histogram of the total steps taken per day")+
 ylab("Frequency")
-```
+```  
+<br>
+
+
 ## 3.Mean and median number of steps taken each day
 ```{r}
-steps_per_day_mean_median = activity[,c(1,2)] %>% group_by(date) %>% summarise(mean = mean(steps) , median = median(steps))
+steps_per_day_mean_median = activity[,c(1,2)] %>% group_by(date) %>% summarise(mean = mean(steps , na.rm = T) , median = median(steps , na.rm = T))
 head(steps_per_day_mean_median)
+
+mean(steps_per_day$steps , na.rm = T)
+median(steps_per_day$steps , na.rm = T)
 
 ```
 
@@ -73,14 +79,14 @@ max_interval
 
 ## 6.Code to describe and show a strategy for imputing missing data
 
-#### **number of missing values and percentage to whole data**
+#### **Number of missing values and percentage to whole data**
 ```{r}
 sum(is.na(activity))
-print(paste(round(sum(is.na(activity))/nrow(activity) * 100 ,2 ) ,"%" ,sep = ""))
+paste(round(sum(is.na(activity))/nrow(activity) * 100 ,2 ) ,"%" ,sep = "")
 
 ```
 
-#### **Impute missing values in data**
+#### **Impute missing values in data with the average steps for each day**
 ```{r}
 new_activity = activity
 activity_NA = activity[is.na(activity),]
@@ -92,7 +98,7 @@ new_activity$steps[is.na(activity$steps)] = activity_with_mean$mean
 #### **Testing the new data**
 
 ```{r}
-sum(is.na(new_activity))
+sum(is.na(new_activity)) #Empty !
 
 ```
 
@@ -104,8 +110,8 @@ head(new_steps_per_day)
 
 ggplot(new_steps_per_day ,aes(steps))+
   geom_histogram(color="darkblue", fill="lightblue")+
-  ggtitle("Histogram of the total steps taken per day after removing NAs")
-ylab("Frequency")
+  ggtitle("Histogram of the total steps taken per day after removing NAs")+
+  ylab("Frequency")
 
 ```
 
@@ -129,6 +135,8 @@ ggplot(both, aes(steps, fill = type)) +
 summary(new_steps_per_day$steps) #Original
 summary(steps_per_day$steps)[-7] #imputed
 ```
+We can see that the main difference is in the fisrt quantile  
+
 
 ## 8.Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
 ```{r}
